@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>mememoji</title>
+    <style>
+        /* ===== 全局变量 & 背景图 (日间使用用户图片) ===== */
+        :root {
+            --bg-image: url('https://image.uglycat.cc/9rgxad.png');
+            /* 用户提供的浅绿波点图 */
+            --bg-color: #f0f7ed;
+            /* 后备背景色 */
+            --text-color: #2c4a3e;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --card-border: rgba(160, 190, 150, 0.5);
+            --primary-color: #5f8b6f;
+            --secondary-color: #7f9f85;
+            --success-color: #4f7a5f;
+            --hover-color: #3e5f4a;
+            --shadow: 0 4px 12px rgba(80, 100, 80, 0.1);
+            --header-bg: rgba(230, 245, 225, 0.5);
+            --button-text: #2c4a3e;
+            --profile-tip: #6a7c6a;
+            --instruction-bg: rgba(200, 225, 190, 0.6);
+        }
+
+        .dark-mode {
+            --bg-image: none;
+            /* 夜间无背景图 */
+            --bg-color: #1a241e;
+            --text-color: #d6e6d6;
+            --card-bg: rgba(30, 45, 35, 0.9);
+            --card-border: #3a5540;
+            --primary-color: #6f9a7c;
+            --secondary-color: #5a7a63;
+            --success-color: #5e856a;
+            --hover-color: #4e6e58;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            --header-bg: rgba(20, 30, 20, 0.8);
+            --button-text: #d6e6d6;
+            --profile-tip: #a0b8a0;
+            --instruction-bg: rgba(50, 75, 55, 0.7);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: var(--bg-image);
+            background-repeat: repeat;
+            /* 波点图平铺 */
+            background-size: auto;
+            /* 保持原图尺寸 */
+            color: var(--text-color);
+            padding: 0 2%;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(2px);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .page {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 100%;
+            height: 100%;
+            padding: 12px 0 20px;
+            margin: 0 auto;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        .theme-btn {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border: 1px solid var(--card-border);
+            padding: 8px 18px;
+            border-radius: 40px;
+            color: var(--text-color);
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* ========= 主界面 ========= */
+        .home-top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        .home-title {
+            font-size: 22px;
+            font-weight: 500;
+            letter-spacing: 1.5px;
+            color: var(--text-color);
+        }
+
+        .home-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin: 0 0 10px;
+        }
+
+        .home-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 120px;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            flex-shrink: 0;
+            background-image: url('https://image.uglycat.cc/9mxi4r.jpeg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .instruction-card {
+            flex: 1 1 600px;
+            max-width: 750px;
+            background: var(--instruction-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 28px;
+            padding: 18px 22px;
+            box-shadow: var(--shadow);
+        }
+
+        .instruction-card h3 {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .instruction-card p {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .instruction-card .note {
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--profile-tip);
+            border-top: 1px dashed var(--card-border);
+            padding-top: 12px;
+        }
+
+        .instruction-card .note p {
+            margin-bottom: 6px;
+        }
+
+        .bookmark-header {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+
+        .bookmark-input-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .bookmark-input-row input {
+            flex: 1 1 200px;
+            padding: 12px 16px;
+            border-radius: 40px;
+            border: 1px solid var(--card-border);
+            background: var(--card-bg);
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        .bookmark-input-row button {
+            background: var(--primary-color);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 32px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+        }
+
+        .long-btn {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 60px;
+            padding: 16px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--button-text);
+            cursor: pointer;
+            width: 100%;
+            box-shadow: var(--shadow);
+        }
+
+        .long-btn:active {
+            opacity: 0.7;
+        }
+
+        /* ========= 个人收藏界面 ========= */
+        .profile-header-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .profile-head {
+            flex: 1;
+            /* 占满除夜间按钮外的剩余宽度 */
+            display: flex;
+            align-items: center;
+            /* 垂直居中 */
+            justify-content: center;
+            /* 水平居中 */
+            gap: 20px;
+            /* 头像与文字间距 */
+            flex-wrap: wrap;
+            /* 小屏时换行 */
+        }
+
+        .profile-side-text {
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--secondary-color);
+            /* 使用较浅的颜色变量，也可用 --profile-tip 或自定义更浅色 */
+            max-width: 180px;
+            /* 限制宽度，形成块状 */
+            line-height: 1.5;
+            /* 增加行高，阅读舒适 */
+            word-break: break-word;
+            /* 允许长单词换行 */
+            opacity: 0.75;
+            /* 略微透明，更像水印 */
+            text-align: center;
+            /* 文字居中，可根据喜好改为 left/right */
+            white-space: normal;
+            /* 允许换行（覆盖可能的 nowrap） */
+        }
+
+        .big-avatar {
+            width: 120px;
+            height: 120px;
+            flex-shrink: 0;
+            border-radius: 120px;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0;
+            cursor: pointer;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            box-shadow: var(--shadow);
+            background-image: url('https://image.uglycat.cc/9mxi4r.jpeg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .files-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 8px;
+            width: 100%;
+        }
+
+        /* 个人收藏界面 - 预览图与卡片新样式 */
+        .preview-area {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 16px;
+            min-height: 320px;
+            /* 竖长方形高度 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-image {
+            width: 100%;
+            height: 100%;
+            max-height: 360px;
+            object-fit: contain;
+            cursor: pointer;
+            border-radius: 16px;
+            background: rgba(200, 220, 200, 0.3);
+        }
+
+        .file-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .file-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-card:hover {
+            background: rgba(200, 220, 200, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .card-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .file-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .card-btn {
+            background: var(--primary-color);
+            border: none;
+            padding: 6px 16px;
+            border-radius: 30px;
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .card-btn.secondary {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-color);
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 600px) {
+            .card-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .card-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+
+        .preview-placeholder {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 28px;
+            padding: 20px;
+            min-height: 240px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--profile-tip);
+            font-size: 15px;
+            text-align: center;
+        }
+
+        .file-list {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 28px;
+            padding: 20px;
+            min-height: 240px;
+        }
+
+        .empty-files {
+            text-align: center;
+            padding: 30px 10px;
+            color: var(--profile-tip);
+        }
+
+        /* ========= 功能界面 ========= */
+        .function-top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 8px 0;
+        }
+
+        .func-left {
+            flex-shrink: 0;
+        }
+
+        .func-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 52px;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background-image: url('https://image.uglycat.cc/9mxi4r.jpeg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .func-title {
+            flex: 1;
+            text-align: center;
+            font-size: 22px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .func-right {
+            flex-shrink: 0;
+        }
+
+        .mode-section {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 32px;
+            border: 1px solid var(--card-border);
+            padding: 20px;
+            width: 100%;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 16px;
+            border: 1px solid var(--card-border);
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text-color);
+            font-size: 14px;
+            resize: vertical;
+            backdrop-filter: blur(5px);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 16px 0 8px;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+
+        button {
+            background: var(--primary-color);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        button.secondary {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-color);
+        }
+
+        /* 图片列表区域 */
+        .image-list-wrapper {
+            background: var(--header-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 32px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+            width: 100%;
+        }
+
+        .collapse-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .title-with-count {
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        .image-list-container {
+            max-height: 360px;
+            overflow-y: auto;
+            transition: max-height 0.3s ease-in-out;
+        }
+
+        .image-list-container.collapsed {
+            max-height: 0;
+            overflow-y: hidden;
+        }
+
+        .image-item {
+            display: flex;
+            gap: 12px;
+            background: rgba(200, 220, 200, 0.2);
+            border-radius: 24px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid var(--card-border);
+        }
+
+        .image-preview {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 16px;
+            background: #ccc;
+            cursor: pointer;
+        }
+
+        .url-display {
+            font-size: 12px;
+            word-break: break-all;
+            background: rgba(0, 0, 0, 0.03);
+            padding: 6px 10px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+        }
+
+        .naming-section {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .name-input {
+            flex: 1;
+            padding: 8px 14px;
+            border-radius: 30px;
+            border: 1px solid var(--card-border);
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text-color);
+            min-width: 150px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 10px;
+            background: #e74c3c;
+        }
+
+        .status-indicator.named {
+            background: #2ecc71;
+        }
+
+        /* 导出区域 */
+        .export-section {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 32px;
+            border: 1px solid var(--card-border);
+            padding: 20px;
+            margin-top: 8px;
+            width: 100%;
+        }
+
+        .format-presets {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+        }
+
+        .format-preset {
+            padding: 8px 18px;
+            background: rgba(180, 200, 170, 0.3);
+            border-radius: 40px;
+            border: 1px solid var(--card-border);
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .format-preset.selected {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .export-output-container {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 24px;
+            padding: 16px;
+            max-height: 200px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-family: monospace;
+        }
+
+        /* 预览放大层 */
+        .preview-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .preview-overlay img {
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .close-preview {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            font-size: 48px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .file-hint {
+            font-size: 13px;
+            color: var(--profile-tip);
+            margin-top: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 主页 -->
+    <div id="homePage" class="page active">
+        <div class="home-top-row">
+            <div class="home-title">MEMEMOJI</div>
+            <button class="theme-btn" id="themeToggleHome">夜间</button>
+        </div>
+
+        <div class="home-center">
+            <div class="home-avatar" id="homeAvatar" title="点击进入个人收藏"></div>
+            <div class="instruction-card">
+                <h3>食用说明</h3>
+                <p><strong>图片命名功能：</strong>粘贴图片URL，为每张图片填写描述名称，然后选择格式导出。</p>
+                <p><strong>格式转换功能：</strong>上传文件或粘贴文本，自动提取图片链接和名称，转换后添加到独立列表。</p>
+                <p><strong>图床书签：</strong>收藏常用图床网站，点击即可访问。</p>
+                <p><strong>导出设置：</strong>支持自定义格式，可预览、复制或下载为txt文件。</p>
+                <p><strong>点击头像：</strong>里面有作者的表情文件，点击进入，再次点击返回。</p>
+                <div class="note">
+                    <p>重要提示：所有数据都保存在浏览器本地，清空浏览器数据将导致数据丢失，请及时导出重要数据。</p>
+                    <p>授权声明：请确保要进行导出或格式转换的图片链接已经获得对应授权，本工具仅提供格式处理服务。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <div class="bookmark-header">图床书签</div>
+            <div class="bookmark-input-row">
+                <input type="text" id="bookmarkName" placeholder="网站名称">
+                <input type="text" id="bookmarkUrl" placeholder="https://...">
+                <button id="addBookmarkBtn">添加</button>
+            </div>
+            <div id="bookmarkList" class="bookmark-list"></div>
+        </div>
+
+        <div class="long-btn" id="gotoEditBtn">图片命名</div>
+        <div class="long-btn" id="gotoConvertBtn">格式转换</div>
+    </div>
+
+    <!-- 个人收藏界面 -->
+    <div id="profilePage" class="page">
+        <div class="profile-header-row">
+            <div class="profile-head">
+                <span class="profile-side-text">以下表情包图源网络，仅作整理和分享；最新版本：2026.2.14</span>
+                <div class="big-avatar" id="profileBigAvatar" title="点击返回主页"></div>
+                <span class="profile-side-text">以下表情文件可进行二改转换格式；文件二传请标注来源：真里</span>
+            </div>
+            <button class="theme-btn" id="themeToggleProfile">夜间</button>
+        </div>
+
+        <div class="files-layout">
+            <!-- 左侧预览图区域 - 竖长方形 -->
+            <div class="preview-area">
+                <img id="profilePreviewImg" class="preview-image" src="https://image.uglycat.cc/cdblov.png" alt="预览图"
+                    data-full-url="https://image.uglycat.cc/cdblov.png">
+            </div>
+
+            <!-- 右侧三个文件卡片 -->
+            <div class="file-cards" id="favoriteFileList">
+                <!-- 卡片1 -->
+                <div class="file-card" data-img-src="https://image.uglycat.cc/cdblov.png"
+                    data-full-url="https://image.uglycat.cc/cdblov.png">
+                    <div class="card-content">
+                        <span class="file-name">没啥内涵表情包第一弹130个</span>
+                        <div class="card-actions">
+                            <button class="card-btn download-btn">下载</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- 卡片2 -->
+                <div class="file-card" data-img-src="https://image.uglycat.cc/pis415.png"
+                    data-full-url="https://image.uglycat.cc/pis415.png">
+                    <div class="card-content">
+                        <span class="file-name">没啥内涵表情包第二弹102个</span>
+                        <div class="card-actions">
+                            <button class="card-btn download-btn">下载</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- 卡片3 -->
+                <div class="file-card" data-img-src="https://image.uglycat.cc/e8hnyr.png"
+                    data-full-url="https://image.uglycat.cc/e8hnyr.png">
+                    <div class="card-content">
+                        <span class="file-name">没啥内涵表情包第三弹95个</span>
+                        <div class="card-actions">
+                            <button class="card-btn download-btn">下载</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 功能界面 -->
+    <div id="functionPage" class="page">
+        <div class="function-top-bar">
+            <div class="func-left">
+                <div class="func-avatar" id="functionAvatar" title="点击返回主页"></div>
+            </div>
+            <div class="func-title" id="functionTitle">图片命名</div>
+            <div class="func-right">
+                <button class="theme-btn" id="themeToggleFunction">夜间</button>
+            </div>
+        </div>
+
+        <div id="editModeSection" class="mode-section">
+            <textarea id="editUrlInput" placeholder="请在此粘贴图片URL，每行一个..."></textarea>
+            <div class="button-group">
+                <button id="editImportBtn">导入URL</button>
+                <button id="editClearInputBtn" class="secondary">清空输入</button>
+                <button id="editClearListBtn" class="secondary">清空图片列表</button>
+                <button id="editAddSampleBtn" class="secondary">添加示例</button>
+            </div>
+        </div>
+
+        <div id="convertModeSection" class="mode-section" style="display: none;">
+            <div style="margin-bottom:12px;">上传文件或粘贴文本，自动提取图片链接 (支持.txt/.md，docx请另存为txt)</div>
+            <div
+                style="border:2px dashed var(--card-border); border-radius:40px; padding:20px; text-align:center; margin-bottom:12px;">
+                <label for="fileInput" style="cursor:pointer;">点击上传 .txt 或拖放文件</label>
+                <input type="file" id="fileInput" accept=".txt,.md" style="display:none;">
+            </div>
+            <textarea id="conversionInput" placeholder="粘贴已有格式的文本..."></textarea>
+            <div style="margin:16px 0;">
+                <input type="text" id="originalFormat" placeholder="自定义格式 (可选)"
+                    style="width:100%; padding:12px 16px; border-radius:40px; border:1px solid var(--card-border); background:var(--card-bg); color:var(--text-color);">
+            </div>
+            <div class="button-group">
+                <button id="convertFormatBtn">转换并添加</button>
+                <button id="clearConversionInputBtn" class="secondary">清空输入</button>
+                <button id="clearConversionListBtn" class="secondary">清空图片列表</button>
+            </div>
+        </div>
+
+        <div class="image-list-wrapper">
+            <div class="collapse-header">
+                <span class="title-with-count" id="imageListTitle">图片列表 (0)</span>
+                <button id="toggleImageListBtn">收起图片列表</button>
+            </div>
+            <div id="imageListContainer" class="image-list-container">
+                <div id="imageList"></div>
+            </div>
+        </div>
+
+        <div class="export-section">
+            <div style="font-size:18px; font-weight:500; margin-bottom:16px;">导出设置</div>
+            <div class="format-presets">
+                <div class="format-preset selected" data-format="{name}: {url}">描述: 链接</div>
+                <div class="format-preset" data-format="{name}\n{url}">描述/链接分行</div>
+                <div class="format-preset" data-format="![{name}]({url})">Markdown</div>
+                <div class="format-preset" data-format="{url}">纯链接</div>
+            </div>
+            <textarea id="customFormat" placeholder="自定义格式，用 {name} 和 {url}" rows="2">{name}: {url}</textarea>
+            <div class="button-group" style="justify-content:flex-end; margin-top:16px;">
+                <button id="previewExportBtn" class="secondary">预览导出</button>
+                <button id="copyExportBtn">复制</button>
+                <button id="downloadExportBtn">下载</button>
+            </div>
+            <div id="exportOutputContainer" class="export-output-container" style="display:none;"></div>
+        </div>
+    </div>
+
+    <div id="previewOverlay" class="preview-overlay">
+        <span class="close-preview">&times;</span>
+        <img id="fullSizePreview" src="">
+    </div>
+
+    <script>
+        (function () {
+            let editImages = [];
+            let convertImages = [];
+            let bookmarks = [];
+            let favorites = [];
+            let currentMode = 'edit';
+            let imageListVisible = true;
+
+            const homePage = document.getElementById('homePage');
+            const profilePage = document.getElementById('profilePage');
+            const functionPage = document.getElementById('functionPage');
+            const homeAvatar = document.getElementById('homeAvatar');
+            const profileBigAvatar = document.getElementById('profileBigAvatar');
+            const functionAvatar = document.getElementById('functionAvatar');
+            const themeToggleHome = document.getElementById('themeToggleHome');
+            const themeToggleProfile = document.getElementById('themeToggleProfile');
+            const themeToggleFunction = document.getElementById('themeToggleFunction');
+            const gotoEditBtn = document.getElementById('gotoEditBtn');
+            const gotoConvertBtn = document.getElementById('gotoConvertBtn');
+            const functionTitle = document.getElementById('functionTitle');
+            const editModeSection = document.getElementById('editModeSection');
+            const convertModeSection = document.getElementById('convertModeSection');
+            const toggleImageListBtn = document.getElementById('toggleImageListBtn');
+            const imageListContainer = document.getElementById('imageListContainer');
+            const imageListDiv = document.getElementById('imageList');
+            const imageListTitle = document.getElementById('imageListTitle');
+            const exportOutputContainer = document.getElementById('exportOutputContainer');
+
+            const editUrlInput = document.getElementById('editUrlInput');
+            const editImportBtn = document.getElementById('editImportBtn');
+            const editClearInputBtn = document.getElementById('editClearInputBtn');
+            const editClearListBtn = document.getElementById('editClearListBtn');
+            const editAddSampleBtn = document.getElementById('editAddSampleBtn');
+
+            const conversionInput = document.getElementById('conversionInput');
+            const fileInput = document.getElementById('fileInput');
+            const originalFormat = document.getElementById('originalFormat');
+            const convertFormatBtn = document.getElementById('convertFormatBtn');
+            const clearConversionInputBtn = document.getElementById('clearConversionInputBtn');
+            const clearConversionListBtn = document.getElementById('clearConversionListBtn');
+
+            function initTheme() {
+                const saved = localStorage.getItem('mememoji_theme');
+                if (saved === 'dark') document.body.classList.add('dark-mode');
+                updateThemeButtons();
+            }
+            function updateThemeButtons() {
+                const isDark = document.body.classList.contains('dark-mode');
+                const text = isDark ? '日间' : '夜间';
+                themeToggleHome.innerText = text;
+                themeToggleProfile.innerText = text;
+                themeToggleFunction.innerText = text;
+            }
+            function toggleTheme() {
+                document.body.classList.toggle('dark-mode');
+                const isDark = document.body.classList.contains('dark-mode');
+                localStorage.setItem('mememoji_theme', isDark ? 'dark' : 'light');
+                updateThemeButtons();
+            }
+            themeToggleHome.addEventListener('click', toggleTheme);
+            themeToggleProfile.addEventListener('click', toggleTheme);
+            themeToggleFunction.addEventListener('click', toggleTheme);
+
+            function showPage(pageId) {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.getElementById(pageId).classList.add('active');
+                // 如果进入个人收藏页面，初始化卡片交互
+                if (pageId === 'profilePage') {
+                    setTimeout(initProfileCards, 50); // 延迟确保DOM渲染
+                }
+            }
+            homeAvatar.addEventListener('click', () => showPage('profilePage'));
+            profileBigAvatar.addEventListener('click', () => showPage('homePage'));
+            functionAvatar.addEventListener('click', () => showPage('homePage'));
+
+            gotoEditBtn.addEventListener('click', () => {
+                currentMode = 'edit';
+                functionTitle.innerText = '图片命名';
+                editModeSection.style.display = 'block';
+                convertModeSection.style.display = 'none';
+                showPage('functionPage');
+                renderImageList();
+            });
+            gotoConvertBtn.addEventListener('click', () => {
+                currentMode = 'convert';
+                functionTitle.innerText = '格式转换';
+                editModeSection.style.display = 'none';
+                convertModeSection.style.display = 'block';
+                showPage('functionPage');
+                renderImageList();
+            });
+
+            function loadFromStorage() {
+                try {
+                    const savedEdit = localStorage.getItem('mememoji_editImages');
+                    if (savedEdit) editImages = JSON.parse(savedEdit);
+                    const savedConvert = localStorage.getItem('mememoji_convertImages');
+                    if (savedConvert) convertImages = JSON.parse(savedConvert);
+                    const savedBookmarks = localStorage.getItem('mememoji_bookmarks');
+                    if (savedBookmarks) bookmarks = JSON.parse(savedBookmarks);
+                } catch (e) { }
+            }
+            function saveCurrentList() {
+                if (currentMode === 'edit') {
+                    localStorage.setItem('mememoji_editImages', JSON.stringify(editImages));
+                } else {
+                    localStorage.setItem('mememoji_convertImages', JSON.stringify(convertImages));
+                }
+                localStorage.setItem('mememoji_bookmarks', JSON.stringify(bookmarks));
+            }
+            loadFromStorage();
+
+            function getCurrentImages() {
+                return currentMode === 'edit' ? editImages : convertImages;
+            }
+            function setCurrentImages(newList) {
+                if (currentMode === 'edit') {
+                    editImages = newList;
+                } else {
+                    convertImages = newList;
+                }
+                saveCurrentList();
+            }
+
+            function renderImageList() {
+                const images = getCurrentImages();
+                if (!imageListDiv) return;
+                if (images.length === 0) {
+                    imageListDiv.innerHTML = '<div class="empty-files">暂无图片，请导入URL</div>';
+                } else {
+                    let html = '';
+                    images.forEach(img => {
+                        const statusClass = img.name ? 'named' : '';
+                        html += `
+                            <div class="image-item" data-id="${img.id}">
+                                <img src="${img.url}" class="image-preview" data-full-url="${img.url}" onerror="this.src='https://via.placeholder.com/80?text=error'" loading="lazy">
+                                <div style="flex:1;">
+                                    <div class="url-display">${img.url}</div>
+                                    <div class="naming-section">
+                                        <span class="status-indicator ${statusClass}"></span>
+                                        <input type="text" class="name-input" value="${img.name || ''}" placeholder="输入描述">
+                                        <button class="remove-image-btn secondary" style="padding:6px 14px;">删除</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    imageListDiv.innerHTML = html;
+                }
+                imageListTitle.innerText = `图片列表 (${images.length})`;
+
+                imageListDiv.querySelectorAll('.name-input').forEach(inp => {
+                    inp.addEventListener('input', function (e) {
+                        const id = this.closest('.image-item').dataset.id;
+                        const images = getCurrentImages();
+                        const img = images.find(i => i.id == id);
+                        if (img) { img.name = this.value; saveCurrentList(); }
+                        const status = this.closest('.image-item').querySelector('.status-indicator');
+                        if (this.value) status.classList.add('named'); else status.classList.remove('named');
+                    });
+                });
+                imageListDiv.querySelectorAll('.remove-image-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const id = this.closest('.image-item').dataset.id;
+                        const newList = getCurrentImages().filter(i => i.id != id);
+                        setCurrentImages(newList);
+                        renderImageList();
+                    });
+                });
+                imageListDiv.querySelectorAll('.image-preview').forEach(img => {
+                    img.addEventListener('click', function () {
+                        const full = this.dataset.fullUrl;
+                        document.getElementById('fullSizePreview').src = full;
+                        document.getElementById('previewOverlay').style.display = 'flex';
+                    });
+                });
+            }
+
+            function renderBookmarkList() {
+                const container = document.getElementById('bookmarkList');
+                if (!container) return;
+                if (bookmarks.length === 0) {
+                    container.innerHTML = '<div class="empty-files">暂无收藏</div>';
+                    return;
+                }
+                let html = '';
+                bookmarks.forEach(b => {
+                    html += `
+                        <div class="bookmark-item" data-id="${b.id}" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px dashed var(--card-border);">
+                            <div><strong>${b.name}</strong><br><small>${b.url}</small></div>
+                            <div>
+                                <button class="visit-btn" style="margin-right:6px;">访问</button>
+                                <button class="remove-bookmark-btn secondary">删除</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+                container.querySelectorAll('.visit-btn').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        const id = e.target.closest('.bookmark-item').dataset.id;
+                        const b = bookmarks.find(b => b.id == id);
+                        if (b) window.open(b.url, '_blank');
+                    });
+                });
+                container.querySelectorAll('.remove-bookmark-btn').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        const id = e.target.closest('.bookmark-item').dataset.id;
+                        bookmarks = bookmarks.filter(b => b.id != id);
+                        localStorage.setItem('mememoji_bookmarks', JSON.stringify(bookmarks));
+                        renderBookmarkList();
+                    });
+                });
+            }
+
+            // 不再需要动态渲染收藏文件，保留空函数避免报错
+            function renderFavorites() {
+                // 静态卡片已在HTML中，无需操作
+            }
+
+            editImportBtn?.addEventListener('click', () => {
+                const urls = editUrlInput.value.trim().split('\n').filter(u => u.trim());
+                urls.forEach(u => {
+                    if (!editImages.some(i => i.url === u)) {
+                        editImages.push({ url: u, name: '', id: Date.now() + Math.random() });
+                    }
+                });
+                saveCurrentList();
+                renderImageList();
+                editUrlInput.value = '';
+            });
+
+            editAddSampleBtn?.addEventListener('click', () => {
+                editUrlInput.value = 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=200\nhttps://images.unsplash.com/photo-1519681393784-d120267933ba?w=200';
+            });
+
+            editClearInputBtn?.addEventListener('click', () => {
+                editUrlInput.value = '';
+            });
+
+            editClearListBtn?.addEventListener('click', () => {
+                if (confirm('清空图片命名列表？')) {
+                    setCurrentImages([]);
+                    renderImageList();
+                }
+            });
+
+            function parseTextToImages(text) {
+                const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+                const images = [];
+                const urlSet = new Set();
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const urlMatch = line.match(/(https?:\/\/[^\s]+)/);
+                    if (!urlMatch) continue;
+
+                    const url = urlMatch[0];
+                    if (urlSet.has(url)) continue;
+
+                    let name = '';
+                    const beforeUrl = line.substring(0, line.indexOf(url)).trim();
+                    const afterUrl = line.substring(line.indexOf(url) + url.length).trim();
+
+                    if (beforeUrl) {
+                        name = beforeUrl.replace(/[:：]\s*$/, '').trim();
+                    } else if (afterUrl && !afterUrl.match(/^https?:\/\//)) {
+                        name = afterUrl;
+                    } else {
+                        if (i > 0 && !lines[i - 1].match(/https?:\/\//) && !urlSet.has(lines[i - 1])) {
+                            name = lines[i - 1];
+                        }
+                    }
+
+                    const mdMatch = line.match(/\[([^\]]+)\]\(([^)]+)\)/);
+                    if (mdMatch && mdMatch[2] === url) {
+                        name = mdMatch[1];
+                    }
+
+                    images.push({
+                        url: url,
+                        name: name || `图片${images.length + 1}`,
+                        id: Date.now() + Math.random() + i
+                    });
+                    urlSet.add(url);
+                }
+                return images;
+            }
+
+            convertFormatBtn?.addEventListener('click', () => {
+                const text = conversionInput.value.trim();
+                if (!text) return alert('请输入内容');
+                const parsed = parseTextToImages(text);
+                if (parsed.length === 0) return alert('未找到图片链接');
+
+                const existingUrls = new Set(convertImages.map(i => i.url));
+                const newImages = parsed.filter(p => !existingUrls.has(p.url));
+                convertImages = [...convertImages, ...newImages];
+                saveCurrentList();
+                renderImageList();
+                conversionInput.value = '';
+                alert(`添加了 ${newImages.length} 张图片`);
+            });
+
+            clearConversionInputBtn?.addEventListener('click', () => {
+                conversionInput.value = '';
+                originalFormat.value = '';
+                fileInput.value = '';
+            });
+
+            clearConversionListBtn?.addEventListener('click', () => {
+                if (confirm('清空格式转换的图片列表？')) {
+                    convertImages = [];
+                    saveCurrentList();
+                    renderImageList();
+                }
+            });
+
+            fileInput?.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const ext = file.name.split('.').pop().toLowerCase();
+                if (ext === 'docx') {
+                    alert('docx文件无法直接解析，请另存为txt后再上传。');
+                    fileInput.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (ev) => conversionInput.value = ev.target.result;
+                reader.readAsText(file);
+            });
+
+            const customFormat = document.getElementById('customFormat');
+            document.querySelectorAll('.format-preset').forEach(p => {
+                p.addEventListener('click', function () {
+                    document.querySelectorAll('.format-preset').forEach(pp => pp.classList.remove('selected'));
+                    this.classList.add('selected');
+                    customFormat.value = this.dataset.format;
+                });
+            });
+            function getExportText() {
+                const images = getCurrentImages();
+                const named = images.filter(i => i.name.trim());
+                if (!named.length) return '';
+                let format = customFormat.value.trim() || "{name}: {url}";
+                return named.map(img => format.replace(/{name}/g, img.name).replace(/{url}/g, img.url)).join('\n');
+            }
+            document.getElementById('previewExportBtn')?.addEventListener('click', () => {
+                const text = getExportText();
+                if (!text) return alert('请先为图片命名');
+                let outputDiv = document.getElementById('exportOutput');
+                if (!outputDiv) {
+                    outputDiv = document.createElement('pre');
+                    outputDiv.id = 'exportOutput';
+                    outputDiv.style.whiteSpace = 'pre-wrap';
+                    outputDiv.style.wordBreak = 'break-all';
+                    exportOutputContainer.appendChild(outputDiv);
+                }
+                outputDiv.innerText = text;
+                exportOutputContainer.style.display = 'block';
+            });
+            document.getElementById('copyExportBtn')?.addEventListener('click', () => {
+                const text = getExportText();
+                if (!text) return alert('无内容可复制');
+                navigator.clipboard.writeText(text).then(() => alert('已复制'));
+            });
+            document.getElementById('downloadExportBtn')?.addEventListener('click', () => {
+                const text = getExportText();
+                if (!text) return alert('无内容可下载');
+                const blob = new Blob([text], { type: 'text/plain' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'export.txt';
+                a.click();
+            });
+
+            document.getElementById('addBookmarkBtn')?.addEventListener('click', () => {
+                const name = document.getElementById('bookmarkName').value.trim();
+                const url = document.getElementById('bookmarkUrl').value.trim();
+                if (!name || !url) return alert('请填写完整');
+                if (!url.startsWith('http')) return alert('URL需以http开头');
+                bookmarks.push({ id: Date.now() + Math.random(), name, url });
+                localStorage.setItem('mememoji_bookmarks', JSON.stringify(bookmarks));
+                renderBookmarkList();
+                document.getElementById('bookmarkName').value = '';
+                document.getElementById('bookmarkUrl').value = '';
+            });
+
+            toggleImageListBtn?.addEventListener('click', () => {
+                imageListVisible = !imageListVisible;
+                if (imageListVisible) {
+                    imageListContainer.classList.remove('collapsed');
+                    toggleImageListBtn.innerText = '收起图片列表';
+                } else {
+                    imageListContainer.classList.add('collapsed');
+                    toggleImageListBtn.innerText = '展开图片列表';
+                }
+            });
+
+            document.querySelector('.close-preview').addEventListener('click', () => {
+                document.getElementById('previewOverlay').style.display = 'none';
+            });
+            document.getElementById('previewOverlay').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('previewOverlay'))
+                    document.getElementById('previewOverlay').style.display = 'none';
+            });
+
+            // 初始化个人收藏卡片交互
+            function initProfileCards() {
+                const previewImg = document.getElementById('profilePreviewImg');
+                const fileCards = document.querySelectorAll('.file-card');
+                
+                // 为每个卡片绑定点击切换预览图
+                fileCards.forEach(card => {
+                    card.addEventListener('click', function(e) {
+                        // 如果点击的是按钮，不触发预览切换
+                        if (e.target.classList.contains('card-btn')) return;
+                        
+                        const imgSrc = this.dataset.imgSrc;
+                        const fullUrl = this.dataset.fullUrl;
+                        if (previewImg && imgSrc) {
+                            previewImg.src = imgSrc;
+                            previewImg.dataset.fullUrl = fullUrl;
+                        }
+                    });
+
+                    // 下载按钮
+                    const downloadBtn = card.querySelector('.download-btn');
+                    if (downloadBtn) {
+                        downloadBtn.addEventListener('click', function(e) {
+                            e.stopPropagation(); // 阻止冒泡到卡片
+                            const imgUrl = card.dataset.fullUrl;
+                            const fileName = card.querySelector('.file-name').innerText + '.png';
+                            // 尝试下载，若失败则打开新窗口
+                            fetch(imgUrl)
+                                .then(response => {
+                                    if (!response.ok) throw new Error('网络错误');
+                                    return response.blob();
+                                })
+                                .then(blob => {
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = fileName;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    window.URL.revokeObjectURL(url);
+                                })
+                                .catch(() => {
+                                    // 降级：直接打开链接
+                                    window.open(imgUrl, '_blank');
+                                });
+                        });
+                    }
+
+                    // 复制链接按钮
+                    const copyBtn = card.querySelector('.copy-btn');
+                    if (copyBtn) {
+                        copyBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const imgUrl = card.dataset.fullUrl;
+                            navigator.clipboard.writeText(imgUrl).then(() => {
+                                alert('链接已复制');
+                            }).catch(() => {
+                                alert('复制失败，请手动复制');
+                            });
+                        });
+                    }
+                });
+
+                // 预览图点击放大
+                if (previewImg) {
+                    previewImg.addEventListener('click', function() {
+                        const fullUrl = this.dataset.fullUrl;
+                        document.getElementById('fullSizePreview').src = fullUrl;
+                        document.getElementById('previewOverlay').style.display = 'flex';
+                    });
+                }
+            }
+
+            renderImageList();
+            renderBookmarkList();
+            // 注释掉 renderFavorites，避免覆盖静态卡片
+            // renderFavorites();
+            initTheme();
+
+            if (!document.getElementById('exportOutput')) {
+                const pre = document.createElement('pre');
+                pre.id = 'exportOutput';
+                pre.style.whiteSpace = 'pre-wrap';
+                pre.style.wordBreak = 'break-all';
+                exportOutputContainer.appendChild(pre);
+            }
+            
+        })();
+    </script>
+</body>
+
+</html>
